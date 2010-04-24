@@ -13,14 +13,15 @@
 close all; clear all; clc
 
 % Start and end date for data files.
-StartDate = '01-Jan-2002 00:00:00';
-EndDate   = '01-May-2002 00:00:00';
+StartDate = '01-Jan-2009 00:00:00';
+EndDate   = '01-May-2009 00:00:00';
 
 % % For 2000-1 year.
 % StartDate = '01-Jul-2000 00:00:00';
 % EndDate   = '01-Jun-2001 00:00:00';
 
-file_path = 'Data/DemandPrice/'
+%file_path = 'Data/DemandPrice/'
+ file_path =  uigetdir;
 line_format = '%*s %s %f %f %*s';
 
 StartDateNum = datenum(StartDate);
