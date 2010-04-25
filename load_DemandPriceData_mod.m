@@ -6,22 +6,22 @@
 % http://www.nemmco.com.au/data/market_data.htm                 %
 % 
 % 
-% Nicholas Cutler
+% Nicholas Cutler/Valantis Vais
 % Initialised: 20 May 2009.
 % Updated: 5 August 2009.
-
+%
 close all; clear all; clc
 
 % Start and end date for data files.
 StartDate = '01-Jan-2009 00:00:00';
-EndDate   = '01-May-2009 00:00:00';
+EndDate   = '01-Dec-2009 00:00:00';
 
 % % For 2000-1 year.
 % StartDate = '01-Jul-2000 00:00:00';
 % EndDate   = '01-Jun-2001 00:00:00';
 
-%file_path = 'Data/DemandPrice/'
- file_path =  uigetdir;
+file_path = 'Data/DemandPrice/';
+ %file_path =  uigetdir;
 line_format = '%*s %s %f %f %*s';
 
 StartDateNum = datenum(StartDate);
@@ -29,7 +29,7 @@ EndDateNum   = datenum(EndDate);
 
 L_DS = (EndDateNum - StartDateNum + 1)*48; % *48 for 30-min data.
 
-% Initialise wind farm power data array.
+% Initialise power data array.
 Demand = zeros(1, L_DS);
 Price = zeros(1, L_DS);
 DS_dp = zeros(1, L_DS);
@@ -44,9 +44,9 @@ for dd = StartDateNum:1:EndDateNum % Count up daily.
         % Put date in 6 digit number YYYYMM for file name.
         curr_date = cd_vec(1)*1e2 + cd_vec(2);
         
-        file_name = ['DATA', num2str(curr_date), '_SA1.csv']
+        file_name = ['DATA', num2str(curr_date), '_SA1.csv'];
         % Open file.
-        fid = fopen([file_path, file_name] , 'r')
+        fid = fopen([file_path,'\', file_name] , 'r');
 
         % Extract section of data of interest.
         DM = textscan(fid, line_format, ...
@@ -82,11 +82,11 @@ end
 %         datenum(conv_date_12d_to_0str(DS_dp(ii)));
 % end
 
-[sdate,remain]= strtok(StartDate)
-[edate,remain]= strtok(EndDate)
+[sdate,remain]= strtok(StartDate);
+[edate,remain]= strtok(EndDate);
 % Save 30-min data.
 targetfolder = 'Data/MatlabDataFiles/';
-savename = ['DemandPrice_QLD1','_',sdate,'_',edate]
+savename = ['DemandPrice_SA1','_',sdate,'_',edate];
 % savename = ['MatlabDataFiles/','DemandPrice_SA_2000-1'];
 
 save(strcat(targetfolder,savename),'Demand', 'Price')
@@ -96,15 +96,15 @@ save(strcat(targetfolder,savename),'Demand', 'Price')
 
 Matrix = [L_DS,Demand,Price];
 
-l_Demand = length(Demand)
-l_Price = length(Price)
-l_L_DS = length(DS_dp)
+l_Demand = length(Demand);
+l_Price = length(Price);
+l_L_DS = length(DS_dp);
 
 DS_dp(1:100)
 
 x = 1:1:length(DS_dp);
 
-l_x = length(x)
+l_x = length(x);
 
 
 %Matrix(0:200,0:200)
