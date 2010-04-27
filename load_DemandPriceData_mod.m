@@ -6,22 +6,21 @@
 % http://www.nemmco.com.au/data/market_data.htm                 %
 % 
 % 
-% Nicholas Cutler/Valantis Vais
+% Nicholas Cutler
 % Initialised: 20 May 2009.
 % Updated: 5 August 2009.
-%
+
 close all; clear all; clc
 
 % Start and end date for data files.
-StartDate = '01-Jan-2009 00:00:00';
-EndDate   = '01-Dec-2009 00:00:00';
+StartDate = '01-Jan-2002 00:00:00';
+EndDate   = '01-Jan-2009 00:00:00';
 
 % % For 2000-1 year.
 % StartDate = '01-Jul-2000 00:00:00';
 % EndDate   = '01-Jun-2001 00:00:00';
 
 file_path = 'Data/DemandPrice/';
- %file_path =  uigetdir;
 line_format = '%*s %s %f %f %*s';
 
 StartDateNum = datenum(StartDate);
@@ -29,7 +28,7 @@ EndDateNum   = datenum(EndDate);
 
 L_DS = (EndDateNum - StartDateNum + 1)*48; % *48 for 30-min data.
 
-% Initialise power data array.
+% Initialise wind farm power data array.
 Demand = zeros(1, L_DS);
 Price = zeros(1, L_DS);
 DS_dp = zeros(1, L_DS);
@@ -44,9 +43,9 @@ for dd = StartDateNum:1:EndDateNum % Count up daily.
         % Put date in 6 digit number YYYYMM for file name.
         curr_date = cd_vec(1)*1e2 + cd_vec(2);
         
-        file_name = ['DATA', num2str(curr_date), '_SA1.csv'];
+        file_name = ['DATA', num2str(curr_date), '_SA1.csv']
         % Open file.
-        fid = fopen([file_path,'\', file_name] , 'r');
+        fid = fopen([file_path, file_name] , 'r');
 
         % Extract section of data of interest.
         DM = textscan(fid, line_format, ...
@@ -82,43 +81,40 @@ end
 %         datenum(conv_date_12d_to_0str(DS_dp(ii)));
 % end
 
-[sdate,remain]= strtok(StartDate);
-[edate,remain]= strtok(EndDate);
+l_Demand = length(Demand)
+l_Price = length(Price)
+l_L_DS = length(DS_dp)
+
+[sdate,remain]= strtok(StartDate)
+[edate,remain]= strtok(EndDate)
 % Save 30-min data.
 targetfolder = 'Data/MatlabDataFiles/';
-savename = ['DemandPrice_SA1','_',sdate,'_',edate];
-% savename = ['MatlabDataFiles/','DemandPrice_SA_2000-1'];
+savename = ['DemandPrice_SA1','_',sdate,'_',edate]
 
 save(strcat(targetfolder,savename),'Demand', 'Price')
 
 
-
-
 Matrix = [L_DS,Demand,Price];
 
-l_Demand = length(Demand);
-l_Price = length(Price);
-l_L_DS = length(DS_dp);
-
-DS_dp(1:100)
 
 x = 1:1:length(DS_dp);
 
 l_x = length(x);
 
 
-%Matrix(0:200,0:200)
-
-
-
 %% Plot data
-
+figure('visible','off')
 plot3(x,Demand,Price) % plot raw data
 xlabel('time') 
 ylabel('Demand [MW]') 
 zlabel('Spot Price [$/MWh]') 
 rotate3d
 
+% 2D plot
+figure('visible','on')
+scatter(Demand,Price)
+xlabel('Demand [MW]') 
+ylabel('Spot Price [$/MWh]') 
 
 %% Filter Data
 
@@ -128,9 +124,67 @@ Price1 = Price(indxDemand1); % get prices corresponding to demand < 5500 MW
 x1 = x(indxDemand1); % create an array x1 with the length of data for demand < 5500 MW
 Demand1 = Demand(indxDemand1); % get demand values at indices where demand < 5500 MW
 
-figure()
+figure('visible','off')
 plot3(x1,Demand1,Price1,'Color','r') % plot filtered data
 xlabel('time') 
 ylabel('Demand [MW]') 
 zlabel('Spot Price [$/MWh]') 
 rotate3D
+
+% 2D plot
+figure('visible','on')
+scatter(Demand1,Price1), title('Demand and Price for demand<5500 MW')
+xlabel('Demand [MW]') 
+ylabel('Spot Price [$/MWh]')
+
+
+%% Filter Data by price
+indxPrice2 = find(Price>250); 
+Price2 = Price(indxPrice2); 
+x1 = x(indxPrice2);
+Demand2 = Demand(indxPrice2); 
+% 2D plot
+figure('visible','on')
+scatter(Demand2,Price2), title('Demand and Price for price>$250')
+xlabel('Demand [MW]') 
+ylabel('Spot Price [$/MWh]')
+
+
+%% Cumulative Price calculation
+
+if length(Price)<336
+    fprintf('Chosen data interval less than a week\n')
+    break    
+end
+
+CPcount = 0; %initialization
+CParray = 0; %initialization
+CPmax = 0; %initialization
+CPT = 150000;
+for i= 1:(length(Price)-336)
+    CP(i) = sum(Price(i:i+336));
+%     if CP>CPmax % replace
+%         CPmax = CP;
+%     end
+    if CP(i)>CPT % check if CPT is exceeded
+        %fprintf('CP: %f\n',CP)
+        CParray(i) = CP(i);
+        CPcount = CPcount + 1;
+    end
+end
+
+figure()
+hist(CP,100), title('Histogram of 7-day Cumulative Sums')
+
+fprintf('Maximum of all rolling CPs: %f\n\n',CPmax)
+
+
+fprintf('No of CP violations: %d\n',CPcount)
+fprintf('Average CP: %f\n',mean(CParray))
+fprintf('Min CP: %f\n',min(CParray))
+fprintf('Max CP: %f\n',max(CParray))
+
+
+%%
+fprintf('Script completed\n')
+
