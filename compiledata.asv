@@ -6,22 +6,21 @@
 % http://www.nemmco.com.au/data/market_data.htm                 %
 % 
 % 
-% Nicholas Cutler/Valantis Vais
+% Nicholas Cutler
 % Initialised: 20 May 2009.
 % Updated: 5 August 2009.
-%
+
 close all; clear all; clc
 
 % Start and end date for data files.
 StartDate = '01-Jan-2009 00:00:00';
-EndDate   = '01-Dec-2009 00:00:00';
+EndDate   = '31-Dec-2009 00:00:00';
 
 % % For 2000-1 year.
 % StartDate = '01-Jul-2000 00:00:00';
 % EndDate   = '01-Jun-2001 00:00:00';
 
 file_path = 'Data/DemandPrice/';
- %file_path =  uigetdir;
 line_format = '%*s %s %f %f %*s';
 
 StartDateNum = datenum(StartDate);
@@ -29,7 +28,7 @@ EndDateNum   = datenum(EndDate);
 
 L_DS = (EndDateNum - StartDateNum + 1)*48; % *48 for 30-min data.
 
-% Initialise power data array.
+% Initialise power data arrayS.
 Demand = zeros(1, L_DS);
 Price = zeros(1, L_DS);
 DS_dp = zeros(1, L_DS);
@@ -46,15 +45,14 @@ for dd = StartDateNum:1:EndDateNum % Count up daily.
         
         file_name = ['DATA', num2str(curr_date), '_SA1.csv'];
         % Open file.
-        fid = fopen([file_path,'\', file_name] , 'r');
+        fid = fopen([file_path, file_name] , 'r');
 
         % Extract section of data of interest.
         DM = textscan(fid, line_format, ...
             'headerlines', 1, 'delimiter', ',');
-
-        D_dates = DM{1};
-        D_demand = DM{2};
-        D_RRP = DM{3};
+        D_dates = DM{1}; %Extract dates from second column
+        D_demand = DM{2}; %Extract demand from third column
+        D_RRP = DM{3}; %Extract price from third column
         clear DM;
         
         for ii = 1:length(D_demand)
@@ -82,55 +80,31 @@ end
 %         datenum(conv_date_12d_to_0str(DS_dp(ii)));
 % end
 
-[sdate,remain]= strtok(StartDate);
-[edate,remain]= strtok(EndDate);
 % Save 30-min data.
-targetfolder = 'Data/MatlabDataFiles/';
+[sdate,remain]= strtok(StartDate);%Produce file save name
+[edate,remain]= strtok(EndDate);%Produce file save name
 savename = ['DemandPrice_SA1','_',sdate,'_',edate];
-% savename = ['MatlabDataFiles/','DemandPrice_SA_2000-1'];
-
+targetfolder = 'Data/MatlabDataFiles/';
 save(strcat(targetfolder,savename),'Demand', 'Price')
 
 
+Matrix = [L_DS,Demand,Price]; %NO IDEA WHAT THIS IS FOR
+x = 1:1:length(DS_dp); %NO IDEA WHAT THIS IS FOR
+l_x = length(x);%NO IDEA WHAT THIS IS FOR
 
 
-Matrix = [L_DS,Demand,Price];
+%Print variables to check code worked correctly
+fprintf('Data file saved as %s in %s\n',savename,targetfolder);
+fprintf('Compile started from %s to %s\n',StartDate,EndDate);
+fprintf('Final file accessed was: %s\n',file_name);
+fprintf('%d price points and %d demand points were extracted from %d dates\n',...
+    length(Demand), length(Price),length(DS_dp)); 
 
-l_Demand = length(Demand);
-l_Price = length(Price);
-l_L_DS = length(DS_dp);
-
-DS_dp(1:100)
-
-x = 1:1:length(DS_dp);
-
-l_x = length(x);
-
-
-%Matrix(0:200,0:200)
+%Clear unnecessary variables
+clear file_name file_path fid ii edate dsi dd curr_date cd_vec ans;
+clear L_DS x ;
 
 
 
-%% Plot data
+fprintf('\nScript completed\n')
 
-plot3(x,Demand,Price) % plot raw data
-xlabel('time') 
-ylabel('Demand [MW]') 
-zlabel('Spot Price [$/MWh]') 
-rotate3d
-
-
-%% Filter Data
-
-% 1: filter out data for demand below 5500 MW. 
-indxDemand1 = find(Demand<5500); % get indices for demand < 5500 MW
-Price1 = Price(indxDemand1); % get prices corresponding to demand < 5500 MW
-x1 = x(indxDemand1); % create an array x1 with the length of data for demand < 5500 MW
-Demand1 = Demand(indxDemand1); % get demand values at indices where demand < 5500 MW
-
-figure()
-plot3(x1,Demand1,Price1,'Color','r') % plot filtered data
-xlabel('time') 
-ylabel('Demand [MW]') 
-zlabel('Spot Price [$/MWh]') 
-rotate3D
